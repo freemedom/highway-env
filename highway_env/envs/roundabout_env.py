@@ -29,10 +29,10 @@ class RoundaboutEnv(AbstractEnv):
             "high_speed_reward": 0.2,
             "right_lane_reward": 0,
             "lane_change_reward": -0.05,
-            "screen_width": 600,
-            "screen_height": 600,
-            "centering_position": [0.5, 0.6],
-            "duration": 11,
+            "screen_width": 1200,
+            "screen_height": 800,#900有点大，超出屏幕了
+            "centering_position": [0, 0],
+            "duration": 15,
             "normalize_reward": True
         })
         return config
@@ -67,7 +67,7 @@ class RoundaboutEnv(AbstractEnv):
     def _make_road(self) -> None:
         # Circle lanes: (s)outh/(e)ast/(n)orth/(w)est (e)ntry/e(x)it.
         center = [0, 0]  # [m]
-        radius = 20  # [m]
+        radius = 25  # [m]
         alpha = 24  # [deg]
 
         net = RoadNetwork()
@@ -102,7 +102,7 @@ class RoundaboutEnv(AbstractEnv):
 
         # Access lanes: (r)oad/(s)ine
         access = 170  # [m]
-        dev = 85  # [m]
+        dev = 103  # [m]
         a = 5  # [m]
         delta_st = 0.2*dev  # [m]
 
@@ -170,20 +170,22 @@ class RoundaboutEnv(AbstractEnv):
         self.road.vehicles.append(vehicle)
 
         # Other vehicles
-        for i in list(range(1, 2)) + list(range(-1, 0)):
+        for i in list(range(1, 3)) + list(range(-1, 0)):
             vehicle = other_vehicles_type.make_on_lane(self.road,
                                                        ("we", "sx", 0),
-                                                       longitudinal=20*i + self.np_random.normal()*position_deviation,
+                                                       longitudinal=20*i,# + self.np_random.normal()*position_deviation,
                                                        speed=16 + self.np_random.normal() * speed_deviation)
             vehicle.plan_route_to(self.np_random.choice(destinations))
             vehicle.randomize_behavior()
             self.road.vehicles.append(vehicle)
 
         # Entering vehicle
-        vehicle = other_vehicles_type.make_on_lane(self.road,
-                                                   ("eer", "ees", 0),
-                                                   longitudinal=50 + self.np_random.normal() * position_deviation,
-                                                   speed=16 + self.np_random.normal() * speed_deviation)
-        vehicle.plan_route_to(self.np_random.choice(destinations))
-        vehicle.randomize_behavior()
-        self.road.vehicles.append(vehicle)
+        for i in list(range(1,4)):
+
+            vehicle = other_vehicles_type.make_on_lane(self.road,
+                                                       ("eer", "ees", 0),
+                                                       longitudinal=25*i + self.np_random.normal() * position_deviation,
+                                                       speed=16 + self.np_random.normal() * speed_deviation)
+            vehicle.plan_route_to(self.np_random.choice(destinations))
+            vehicle.randomize_behavior()
+            self.road.vehicles.append(vehicle)
