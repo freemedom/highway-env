@@ -64,7 +64,6 @@ class AbstractEnv(gym.Env):
         # Rendering
         self.viewer = None
         self._record_video_wrapper = None
-        assert render_mode is None or render_mode in self.metadata["render_modes"]
         self.render_mode = render_mode
         self.enable_auto_render = False
 
@@ -96,13 +95,13 @@ class AbstractEnv(gym.Env):
                 "type": "DiscreteMetaAction"
             },
             "simulation_frequency": 15,  # [Hz]
-            "policy_frequency": 1,  # [Hz]
+            "policy_frequency": 8,  # [Hz]
             "other_vehicles_type": "highway_env.vehicle.behavior.IDMVehicle",
             "screen_width": 600,  # [px]
             "screen_height": 150,  # [px]
             "centering_position": [0.3, 0.5],
             "scaling": 5.5,
-            "show_trajectories": False,
+            "show_trajectories": True,
             "render_agent": True,
             "offscreen_rendering": os.environ.get("OFFSCREEN_RENDERING", "0") == "1",
             "manual_control": False,
@@ -206,8 +205,6 @@ class AbstractEnv(gym.Env):
         self.define_spaces()  # Second, to link the obs and actions to the vehicles once the scene is created
         obs = self.observation_type.observe()
         info = self._info(obs, action=self.action_space.sample())
-        if self.render_mode == 'human':
-            self.render()
         return obs, info
 
     def _reset(self) -> None:
@@ -239,8 +236,6 @@ class AbstractEnv(gym.Env):
         terminated = self._is_terminated()
         truncated = self._is_truncated()
         info = self._info(obs, action)
-        if self.render_mode == 'human':
-            self.render()
 
         return obs, reward, terminated, truncated, info
 
@@ -251,12 +246,12 @@ class AbstractEnv(gym.Env):
             # Forward action to the vehicle
             if action is not None \
                     and not self.config["manual_control"] \
-                    and self.steps % int(self.config["simulation_frequency"] // self.config["policy_frequency"]) == 0:
+                    and self.steps % int(self.config["simulation_frequency"] // self.config["policy_frequency"]) == 0:#仿真频率整除策略频率
                 self.action_type.act(action)
 
             self.road.act()
             self.road.step(1 / self.config["simulation_frequency"])
-            self.steps += 1
+            self.steps += 1#循环一次，steps加1
 
             # Automatically render intermediate simulation steps if a viewer has been launched
             # Ignored if the rendering is done offscreen
@@ -265,20 +260,13 @@ class AbstractEnv(gym.Env):
 
         self.enable_auto_render = False
 
-    def render(self) -> Optional[np.ndarray]:
+    def render(self, mode: str = 'rgb_array') -> Optional[np.ndarray]:
         """
         Render the environment.
 
         Create a viewer if none exists, and use it to render an image.
+        :param mode: the rendering mode
         """
-        if self.render_mode is None:
-            assert self.spec is not None
-            gym.logger.warn(
-                "You are calling render method without specifying any render mode. "
-                "You can specify the render_mode at initialization, "
-                f'e.g. gym.make("{self.spec.id}", render_mode="rgb_array")'
-            )
-            return
         if self.viewer is None:
             self.viewer = EnvViewer(self)
 
@@ -288,7 +276,7 @@ class AbstractEnv(gym.Env):
 
         if not self.viewer.offscreen:
             self.viewer.handle_events()
-        if self.render_mode == 'rgb_array':
+        if mode == 'rgb_array':
             image = self.viewer.get_image()
             return image
 
@@ -322,7 +310,7 @@ class AbstractEnv(gym.Env):
             if self._record_video_wrapper and self._record_video_wrapper.video_recorder:
                 self._record_video_wrapper.video_recorder.capture_frame()
             else:
-                self.render()
+                self.render(self.render_mode)
 
     def simplify(self) -> 'AbstractEnv':
         """
@@ -395,7 +383,7 @@ class AbstractEnv(gym.Env):
                 v.randomize_behavior()
         return env_copy
 
-    def to_finite_mdp(self):
+    def to_finite_mdp(self):#没有调用的地方
         return finite_mdp(self, time_quantization=1/self.config["policy_frequency"])
 
     def __deepcopy__(self, memo):
