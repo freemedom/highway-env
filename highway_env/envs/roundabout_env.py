@@ -31,7 +31,7 @@ class RoundaboutEnv(AbstractEnv):
             "lane_change_reward": -0.05,
             "screen_width": 1200,
             "screen_height": 800,#900有点大，超出屏幕了
-            "centering_position": [0, 0],
+            "centering_position": [0.5, 0.6],
             "duration": 15,
             "normalize_reward": True
         })
@@ -170,7 +170,7 @@ class RoundaboutEnv(AbstractEnv):
         self.road.vehicles.append(vehicle)
 
         # Other vehicles
-        for i in list(range(1, 3)) + list(range(-1, 0)):
+        for i in list(range(1, 5)) + list(range(-1, 0)):
             vehicle = other_vehicles_type.make_on_lane(self.road,
                                                        ("we", "sx", 0),
                                                        longitudinal=20*i,# + self.np_random.normal()*position_deviation,
