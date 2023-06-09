@@ -154,20 +154,21 @@ class RoundaboutEnv(AbstractEnv):
         self.vehicle = ego_vehicle
 
         # Incoming vehicle
-        destinations = ["exr", "sxr", "nxr"]
-        other_vehicles_type = utils.class_from_path(self.config["other_vehicles_type"])
-        vehicle = other_vehicles_type.make_on_lane(self.road,
-                                                   ("we", "sx", 1),
-                                                   longitudinal=5 + self.np_random.normal()*position_deviation,
-                                                   speed=16 + self.np_random.normal() * speed_deviation)
-
-        if self.config["incoming_vehicle_destination"] is not None:
-            destination = destinations[self.config["incoming_vehicle_destination"]]
-        else:
-            destination = self.np_random.choice(destinations)
-        vehicle.plan_route_to(destination)
-        vehicle.randomize_behavior()
-        self.road.vehicles.append(vehicle)
+        for i in list(range(0,4)):
+            destinations = ["exr", "sxr", "nxr"]
+            other_vehicles_type = utils.class_from_path(self.config["other_vehicles_type"])
+            vehicle = other_vehicles_type.make_on_lane(self.road,
+                                                       ("we", "sx", 1),
+                                                       longitudinal=-15+20*i + self.np_random.normal()*position_deviation,
+                                                       speed=16 + self.np_random.normal() * speed_deviation)
+    
+            if self.config["incoming_vehicle_destination"] is not None:
+                destination = destinations[self.config["incoming_vehicle_destination"]]
+            else:
+                destination = self.np_random.choice(destinations)
+            vehicle.plan_route_to(destination)
+            vehicle.randomize_behavior()
+            self.road.vehicles.append(vehicle)
 
         # Other vehicles
         for i in list(range(1, 5)) + list(range(-1, 0)):
