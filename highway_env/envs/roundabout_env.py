@@ -71,10 +71,10 @@ class RoundaboutEnv(AbstractEnv):
         alpha = 24  # [deg]
 
         net = RoadNetwork()
-        radii = [radius, radius+4]
+        radii = [radius, radius+4,radius+8]
         n, c, s = LineType.NONE, LineType.CONTINUOUS, LineType.STRIPED
-        line = [[c, s], [n, c]]
-        for lane in [0, 1]:
+        line = [[c, s], [n, s],[n,c]]
+        for lane in [0, 1,2]:
             net.add_lane("se", "ex",
                          CircularLane(center, radii[lane], np.deg2rad(90 - alpha), np.deg2rad(alpha),
                                       clockwise=False, line_types=line[lane]))
